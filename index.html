@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reactive UI Toolkit — React-style UI for game engines</title>
+  <meta name="description"
+    content="One component model, every engine. Function components, hooks and a fiber reconciler for Godot, Unity and Unreal — each implemented natively, each with a JSX-like markup language." />
+  <link rel="icon" type="image/png" href="./logo.png" />
+
+  <meta property="og:title" content="Reactive UI Toolkit" />
+  <meta property="og:description" content="React-style UI for game engines — Godot, Unity and Unreal." />
+  <meta property="og:image" content="./logo.png" />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root {
+      --bg: #08161d;
+      --bg-grad: radial-gradient(ellipse 90% 60% at 50% -10%, #123746 0%, #08161d 60%);
+      --surface: #0e2531;
+      --surface-hi: #143140;
+      --border: #1d4254;
+      --border-hi: #2bb6d6;
+      --text: #e8f6fa;
+      --text-dim: #93b8c6;
+      --accent: #38d9f0;
+      --accent-soft: rgba(56, 217, 240, 0.12);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f4fafc;
+        --bg-grad: radial-gradient(ellipse 90% 60% at 50% -10%, #dff3f9 0%, #f4fafc 60%);
+        --surface: #ffffff;
+        --surface-hi: #ffffff;
+        --border: #cfe4ec;
+        --border-hi: #0e97b5;
+        --text: #0b2530;
+        --text-dim: #4d6f7d;
+        --accent: #0e97b5;
+        --accent-soft: rgba(14, 151, 181, 0.09);
+      }
+    }
+
+    :root[data-theme="light"] {
+      --bg: #f4fafc;
+      --bg-grad: radial-gradient(ellipse 90% 60% at 50% -10%, #dff3f9 0%, #f4fafc 60%);
+      --surface: #ffffff;
+      --surface-hi: #ffffff;
+      --border: #cfe4ec;
+      --border-hi: #0e97b5;
+      --text: #0b2530;
+      --text-dim: #4d6f7d;
+      --accent: #0e97b5;
+      --accent-soft: rgba(14, 151, 181, 0.09);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #08161d;
+      --bg-grad: radial-gradient(ellipse 90% 60% at 50% -10%, #123746 0%, #08161d 60%);
+      --surface: #0e2531;
+      --surface-hi: #143140;
+      --border: #1d4254;
+      --border-hi: #2bb6d6;
+      --text: #e8f6fa;
+      --text-dim: #93b8c6;
+      --accent: #38d9f0;
+      --accent-soft: rgba(56, 217, 240, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0 1.25rem 4rem;
+      background: var(--bg);
+      background-image: var(--bg-grad);
+      background-repeat: no-repeat;
+      color: var(--text);
+      font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    .wrap { max-width: 940px; margin: 0 auto; }
+
+    header { text-align: center; padding: 4.5rem 0 3rem; }
+
+    .logo {
+      width: 132px; height: 132px;
+      max-width: 40vw;
+      filter: drop-shadow(0 6px 28px rgba(56, 217, 240, 0.28));
+    }
+
+    h1 {
+      margin: 1.4rem 0 0;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .tagline {
+      margin: 0.85rem auto 0;
+      font-size: clamp(1.05rem, 2.6vw, 1.3rem);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .lede {
+      margin: 1.4rem auto 0;
+      max-width: 40rem;
+      color: var(--text-dim);
+      font-size: 1.03rem;
+    }
+
+    h2 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin: 0 0 1.1rem;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+      gap: 1.15rem;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem 1.4rem 1.35rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .18s ease, transform .18s ease, background .18s ease;
+    }
+
+    .card:hover, .card:focus-visible {
+      border-color: var(--border-hi);
+      background: var(--surface-hi);
+      transform: translateY(-3px);
+      outline: none;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+
+    .meta {
+      margin: .55rem 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+    }
+
+    .chip {
+      font-size: .73rem;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: .2rem .6rem;
+      white-space: nowrap;
+    }
+
+    .card p {
+      margin: .9rem 0 0;
+      color: var(--text-dim);
+      font-size: .94rem;
+      flex: 1;
+    }
+
+    .go {
+      margin-top: 1.1rem;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .go::after { content: " →"; }
+
+    footer {
+      margin-top: 3.5rem;
+      padding-top: 1.75rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: .9rem;
+    }
+
+    footer nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-bottom: 1.1rem;
+    }
+
+    footer a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border-hi); padding-bottom: 1px; }
+    footer a:hover { color: var(--accent); }
+    .fine { font-size: .84rem; margin: 0; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header>
+      <img class="logo" src="./logo.png" alt="Reactive UI Toolkit logo" width="132" height="132" />
+      <h1>Reactive UI Toolkit</h1>
+      <p class="tagline">React-style UI for game engines.</p>
+      <p class="lede">
+        One component model, every engine. Function components, hooks, and a fiber reconciler that
+        diffs each render and patches only what changed — implemented natively for each engine, and
+        authored in a JSX-like markup language that compiles to that engine's own code.
+      </p>
+    </header>
+
+    <main>
+      <h2>Documentation</h2>
+      <div class="grid">
+
+        <a class="card" href="./godot/">
+          <h3>Godot</h3>
+          <div class="meta">
+            <span class="chip">GDScript</span>
+            <span class="chip">.guitkx</span>
+            <span class="chip">Godot 4.x</span>
+          </div>
+          <p>
+            Plain GDScript — no C#, no autoload. Components patch a real <code>Control</code> tree,
+            and <code>.guitkx</code> compiles to a sibling <code>.gd</code> with hot reload that
+            preserves hook state.
+          </p>
+          <span class="go">Read the docs</span>
+        </a>
+
+        <a class="card" href="./unity/">
+          <h3>Unity</h3>
+          <div class="meta">
+            <span class="chip">C#</span>
+            <span class="chip">.uitkx</span>
+            <span class="chip">Unity 6000.2+</span>
+          </div>
+          <p>
+            Runs entirely in C# on top of UI&nbsp;Toolkit, with a second render backend for classic
+            uGUI — one fiber reconciler, two backends, the same components rendering to either.
+          </p>
+          <span class="go">Read the docs</span>
+        </a>
+
+        <a class="card" href="./unreal/">
+          <h3>Unreal</h3>
+          <div class="meta">
+            <span class="chip">C++</span>
+            <span class="chip">.uetkx</span>
+            <span class="chip">UE 5.6+</span>
+          </div>
+          <p>
+            Pure C++ over real Slate widgets, with a time-sliced render scheduler and an in-editor
+            <code>.uetkx</code> live preview.
+          </p>
+          <span class="go">Read the docs</span>
+        </a>
+
+      </div>
+    </main>
+
+    <footer>
+      <nav>
+        <a href="https://github.com/reactive-ui-toolkit">GitHub</a>
+        <a href="https://discord.gg/Knedqu4Wyv">Discord</a>
+      </nav>
+      <p class="fine">
+        Free for teams under US&nbsp;$250k annual revenue under the Reactive UI Toolkit Community
+        License — see each repository's <code>LICENSE</code>.
+      </p>
+    </footer>
+
+  </div>
+</body>
+
+</html>
